@@ -1,0 +1,2568 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: argo
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-container-builder
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-viewer
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-driver-agent-executor-plugin
+  namespace: kubeflow
+secrets:
+- name: ml-pipeline-driver-agent-executor-plugin.service-account-token
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui-signing-key-init
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-crd-service-account
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: mysql
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-runner
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: seaweedfs
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: argo-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - get
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/exec
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  - persistentvolumeclaims/finalizers
+  verbs:
+  - create
+  - update
+  - delete
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  - workflows/finalizers
+  - workflowtasksets
+  - workflowtasksets/finalizers
+  - workflowartifactgctasks
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+  - create
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflowtemplates
+  - workflowtemplates/finalizers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflowtaskresults
+  verbs:
+  - list
+  - watch
+  - deletecollection
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - cronworkflows
+  - cronworkflows/finalizers
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - create
+  - get
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-public
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - kubeflow-pipelines-public
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - mlflow.kubeflow.org
+  resources:
+  - experiments
+  verbs:
+  - get
+  - list
+  - create
+  - update
+- apiGroups:
+  - ""
+  resourceNames:
+  - kfp-launcher
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resourceNames:
+  - kfp-mlflow-credentials
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+- apiGroups:
+  - coordination.k8s.io
+  resourceNames:
+  - kfp-apiserver-gc
+  resources:
+  - leases
+  verbs:
+  - get
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-executor-plugin-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resourceNames:
+  - pipeline-runner
+  resources:
+  - serviceaccounts/token
+  verbs:
+  - create
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflowtasksets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - create
+  - get
+  - list
+  - delete
+- apiGroups:
+  - ""
+  resourceNames:
+  - kfp-launcher
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resourceNames:
+  - mlpipeline-minio-artifact
+  - kfp-mlflow-credentials
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - mlflow.kubeflow.org
+  resources:
+  - experiments
+  verbs:
+  - get
+  - list
+  - create
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - scheduledworkflows
+  - workflows
+  verbs:
+  - report
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs
+  verbs:
+  - reportMetrics
+  - readArtifact
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline-scheduledworkflow-role
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - scheduledworkflows
+  - scheduledworkflows/finalizers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs
+  verbs:
+  - create
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+- apiGroups:
+  - coordination.k8s.io
+  resourceNames:
+  - kfp-scheduledworkflow
+  resources:
+  - leases
+  verbs:
+  - get
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - configmaps
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - viewers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - delete
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui-signing-key-init
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - ml-pipeline-ui-tensorboard-proxy
+  resources:
+  - secrets
+  verbs:
+  - get
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-controller-role
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - deployments
+  - services
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - viewers
+  - viewers/finalizers
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-runner
+  namespace: kubeflow
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  - persistentvolumeclaims
+  verbs:
+  - '*'
+- apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshots
+  verbs:
+  - create
+  - delete
+  - get
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  - workflowtaskresults
+  - workflowtasksets
+  - workflowtasksets/status
+  verbs:
+  - get
+  - create
+  - patch
+  - watch
+  - list
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/exec
+  - pods/log
+  - services
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  - apps
+  - extensions
+  resources:
+  - deployments
+  - replicasets
+  verbs:
+  - '*'
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - '*'
+- apiGroups:
+  - machinelearning.seldon.io
+  resources:
+  - seldondeployments
+  verbs:
+  - '*'
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflowtaskresults
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - mlflow.kubeflow.org
+  resources:
+  - experiments
+  verbs:
+  - get
+  - list
+  - create
+  - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs
+  verbs:
+  - get
+  - list
+  - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - artifacts
+  verbs:
+  - get
+  - list
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: argo-workflowtaskset-status
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflowtasksets
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+  - create
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflowtasksets/status
+  verbs:
+  - get
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: argo-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: argo-role
+subjects:
+- kind: ServiceAccount
+  name: argo
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-public
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubeflow-pipelines-public
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:authenticated
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-driver-agent-executor-plugin-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-executor-plugin-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-driver-agent-executor-plugin
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-persistenceagent-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-persistenceagent
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-scheduledworkflow-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-scheduledworkflow
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-ui
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-ui
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui-signing-key-init
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-ui-signing-key-init
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-ui-signing-key-init
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-crd-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ml-pipeline-viewer-controller-role
+subjects:
+- kind: ServiceAccount
+  name: ml-pipeline-viewer-crd-service-account
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-runner-binding
+  namespace: kubeflow
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipeline-runner
+subjects:
+- kind: ServiceAccount
+  name: pipeline-runner
+  namespace: kubeflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: argo-workflowtaskset-status-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argo-workflowtaskset-status
+subjects:
+- kind: ServiceAccount
+  name: argo
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  defaultPipelineRoot: ""
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kfp-launcher
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  kubeflow_pipelines_version: dev
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: kubeflow-pipelines-public
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  sidecar.automountServiceAccountToken: "true"
+  sidecar.container: |
+    name: driver-plugin
+    image: ghcr.io/kubeflow/kfp-driver:2.17.1
+    terminationMessagePolicy: FallbackToLogsOnError
+    imagePullPolicy: IfNotPresent
+    env:
+      - name: KFP_POD_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.name
+    ports:
+      - containerPort: 8080
+    resources:
+      requests:
+        cpu: "0.1"
+        memory: "64Mi"
+      limits:
+        cpu: "0.5"
+        memory: "0.5Gi"
+    securityContext:
+      # Match Argo's agent init UID to read the shared authentication token.
+      runAsNonRoot: true
+      runAsUser: 8737
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+    - name: var-run-argo
+      mountPath: /kfp/log
+      subPath: driver-plugin
+      readOnly: false
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+    workflows.argoproj.io/configmap-type: ExecutorPlugin
+  name: ml-pipeline-driver-agent
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  viewer-pod-template.json: |-
+    {
+        "spec": {
+            "serviceAccountName": "kubeflow-pipelines-viewer"
+        }
+    }
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui-configmap
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  image: ghcr.io/kubeflow/kfp-frontend:2.17.1
+  job-template: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      # The generated ConfigMap hash also names the Job, allowing image/template upgrades.
+      name: ml-pipeline-ui-signing-key-init
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            sidecar.istio.io/inject: "false"
+        spec:
+          serviceAccountName: ml-pipeline-ui-signing-key-init
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: initialize
+              image: ghcr.io/kubeflow/kfp-frontend:dummy
+              imagePullPolicy: IfNotPresent
+              workingDir: /server
+              command: [node, dist/initialize-tensorboard-signing-key.js]
+              env:
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: SIGNING_SECRET_NAME
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ml-pipeline-ui-signing-key-init
+                      key: secretName
+                - name: SIGNING_SECRET_KEY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ml-pipeline-ui-signing-key-init
+                      key: secretKey
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: [ALL]
+  secretKey: signing-secret
+  secretName: ml-pipeline-ui-tensorboard-proxy
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui-signing-key-init-d6km5hkhmm
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  ALLOWED_ARTIFACT_ENDPOINTS: ""
+  ALLOWED_GCS_UNIVERSE_DOMAINS: googleapis.com
+  ARCHIVED_RUNS_RETENTION_TIME: ""
+  ARTIFACT_RETENTION_DAYS: "-1"
+  ARTIFACTS_PROXY_ENABLED: "false"
+  ConMaxLifeTime: 120s
+  DRIVER_POD_ANNOTATIONS: ""
+  DRIVER_POD_LABELS: ""
+  HTTP_BASE_URL: ""
+  LOG_LEVEL: info
+  RUNS_GC_BATCH_SIZE: "100"
+  RUNS_GC_INTERVAL: 6h
+  RUNS_RETENTION_TIME: ""
+  USERID_HEADER: kubeflow-userid
+  USERID_PREFIX: ""
+  appName: pipeline
+  appVersion: 2.17.1
+  bucketName: mlpipeline
+  cronScheduleTimezone: UTC
+  dbCredentialProvider: ""
+  dbCredentialProviderEnabled: "false"
+  dbCredentialProviderSettings: ""
+  dbTLSCAPath: ""
+  dbType: mysql
+  defaultPVCStorageClass: ""
+  defaultPipelineRoot: ""
+  defaultSecurityContextHostUsers: ""
+  defaultSecurityContextRunAsGroup: ""
+  defaultSecurityContextRunAsNonRoot: ""
+  defaultSecurityContextRunAsUser: ""
+  mlmdDb: metadb
+  mysqlHost: mysql
+  mysqlPort: "3306"
+  pipelineDb: mlpipeline
+  warning: |
+    1. Do not use kubectl to edit this configmap, because some values are used
+    during kustomize build. Instead, change the configmap and apply the entire
+    kustomize manifests again.
+    2. After updating the configmap, some deployments may need to be restarted
+    until the changes take effect. A quick way to restart all deployments in a
+    namespace: `kubectl rollout restart deployment -n <your-namespace>`.
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-install-config
+  namespace: kubeflow
+---
+apiVersion: v1
+data:
+  artifactRepository: |
+    archiveLogs: true
+    s3:
+      endpoint: "seaweedfs.kubeflow.svc:9000"
+      bucket: "mlpipeline"
+      # keyFormat is a format pattern to define how artifacts will be organized in a bucket.
+      # It can reference workflow metadata variables such as workflow.namespace, workflow.name,
+      # pod.name. Can also use strftime formating of workflow.creationTimestamp so that workflow
+      # artifacts can be organized by date. If omitted, will use `{{workflow.name}}/{{pod.name}}`,
+      # which has potential for have collisions, because names do not guarantee they are unique
+      # over the lifetime of the cluster.
+      # Refer to https://kubernetes.io/docs/concepts/overview/working-with-objects/names/.
+      #
+      # The following format looks like:
+      # artifacts/my-workflow-abc123/2018/08/23/my-workflow-abc123-1234567890
+      # Adding date into the path greatly reduces the chance of {{pod.name}} collision.
+      keyFormat: "private-artifacts/{{workflow.namespace}}/{{workflow.name}}/{{workflow.creationTimestamp.Y}}/{{workflow.creationTimestamp.m}}/{{workflow.creationTimestamp.d}}/{{pod.name}}"
+      insecure: true
+      accessKeySecret:
+        name: mlpipeline-minio-artifact
+        key: accesskey
+      secretKeySecret:
+        name: mlpipeline-minio-artifact
+        key: secretkey
+  executor: |
+    imagePullPolicy: IfNotPresent
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  workflowDefaults: |
+    spec:
+      ttlStrategy:
+        secondsAfterCompletion: 3600
+        secondsAfterSuccess: 3600
+        secondsAfterFailure: 3600
+      templateDefaults:
+        retryStrategy:
+          limit: '2'
+          retryPolicy: OnError
+kind: ConfigMap
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: workflow-controller-configmap
+  namespace: kubeflow
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    kubernetes.io/service-account.name: ml-pipeline-driver-agent-executor-plugin
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-driver-agent-executor-plugin.service-account-token
+  namespace: kubeflow
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui-tensorboard-proxy
+  namespace: kubeflow
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: mlpipeline-minio-artifact
+  namespace: kubeflow
+stringData:
+  accesskey: minio
+  secretkey: minio123
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: mysql-secret
+  namespace: kubeflow
+stringData:
+  password: ""
+  username: root
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    kubernetes.io/service-account.name: pipeline-runner
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: pipeline-runner.service-account-token
+  namespace: kubeflow
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/port: "8888"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: "true"
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  - name: grpc
+    port: 8887
+    protocol: TCP
+    targetPort: 8887
+  selector:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: mysql
+  namespace: kubeflow
+spec:
+  ports:
+  - port: 3306
+    protocol: TCP
+    targetPort: 3306
+  selector:
+    app: mysql
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: seaweedfs
+  namespace: kubeflow
+spec:
+  ports:
+  - name: http-iam
+    port: 8111
+    protocol: TCP
+    targetPort: 8111
+  - name: http-s3
+    port: 8333
+    protocol: TCP
+    targetPort: 8333
+  - name: http-s3-compat
+    port: 9000
+    protocol: TCP
+    targetPort: 8333
+  - name: http-master
+    port: 9333
+    protocol: TCP
+    targetPort: 9333
+  - name: grpc-master
+    port: 19333
+    protocol: TCP
+    targetPort: 19333
+  - name: grpc-filer
+    port: 18888
+    protocol: TCP
+    targetPort: 18888
+  - name: http-filer
+    port: 8888
+    protocol: TCP
+    targetPort: 8888
+  selector:
+    app: seaweedfs
+    application-crd-id: kubeflow-pipelines
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: workflow-controller
+value: 1000000
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: mysql-pv-claim
+  namespace: kubeflow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: seaweedfs-pvc
+  namespace: kubeflow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: PUBLISH_LOGS
+          value: "true"
+        - name: LOG_LEVEL
+          value: info
+        - name: PIPELINE_LOG_LEVEL
+          value: "1"
+        - name: CRON_SCHEDULE_TIMEZONE
+          valueFrom:
+            configMapKeyRef:
+              key: cronScheduleTimezone
+              name: pipeline-install-config
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CLUSTER_DOMAIN
+          value: cluster.local
+        - name: OBJECTSTORECONFIG_SECURE
+          value: "false"
+        - name: OBJECTSTORECONFIG_BUCKETNAME
+          valueFrom:
+            configMapKeyRef:
+              key: bucketName
+              name: pipeline-install-config
+        - name: OBJECTSTORECONFIG_HOST
+          value: seaweedfs.kubeflow
+        - name: OBJECTSTORECONFIG_PORT
+          value: "9000"
+        - name: DBCONFIG_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: mysql-secret
+        - name: DBCONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: mysql-secret
+        - name: DBCONFIG_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              key: pipelineDb
+              name: pipeline-install-config
+        - name: DBCONFIG_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: mysqlHost
+              name: pipeline-install-config
+        - name: DBCONFIG_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: mysqlPort
+              name: pipeline-install-config
+        - name: DBCONFIG_CONMAXLIFETIME
+          valueFrom:
+            configMapKeyRef:
+              key: ConMaxLifeTime
+              name: pipeline-install-config
+        - name: DB_DRIVER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: dbType
+              name: pipeline-install-config
+        - name: DB_CREDENTIAL_PROVIDER_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: dbCredentialProviderEnabled
+              name: pipeline-install-config
+              optional: true
+        - name: DB_CREDENTIAL_PROVIDER
+          valueFrom:
+            configMapKeyRef:
+              key: dbCredentialProvider
+              name: pipeline-install-config
+              optional: true
+        - name: DB_TLS_CA_PATH
+          valueFrom:
+            configMapKeyRef:
+              key: dbTLSCAPath
+              name: pipeline-install-config
+              optional: true
+        - name: DB_CREDENTIAL_PROVIDER_SETTINGS
+          valueFrom:
+            configMapKeyRef:
+              key: dbCredentialProviderSettings
+              name: pipeline-install-config
+              optional: true
+        - name: DBCONFIG_MYSQLCONFIG_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: mysql-secret
+        - name: DBCONFIG_MYSQLCONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: mysql-secret
+        - name: DBCONFIG_MYSQLCONFIG_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              key: pipelineDb
+              name: pipeline-install-config
+        - name: DBCONFIG_MYSQLCONFIG_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: mysqlHost
+              name: pipeline-install-config
+        - name: DBCONFIG_MYSQLCONFIG_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: mysqlPort
+              name: pipeline-install-config
+        - name: OBJECTSTORECONFIG_ACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: OBJECTSTORECONFIG_SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        - name: V2_LAUNCHER_IMAGE
+          value: ghcr.io/kubeflow/kfp-launcher:2.17.1
+        - name: COMPILED_PIPELINE_SPEC_PATCH
+          value: '{}'
+        - name: DEFAULT_SECURITY_CONTEXT_RUN_AS_USER
+          valueFrom:
+            configMapKeyRef:
+              key: defaultSecurityContextRunAsUser
+              name: pipeline-install-config
+              optional: true
+        - name: DEFAULT_SECURITY_CONTEXT_RUN_AS_GROUP
+          valueFrom:
+            configMapKeyRef:
+              key: defaultSecurityContextRunAsGroup
+              name: pipeline-install-config
+              optional: true
+        - name: DEFAULT_SECURITY_CONTEXT_RUN_AS_NON_ROOT
+          valueFrom:
+            configMapKeyRef:
+              key: defaultSecurityContextRunAsNonRoot
+              name: pipeline-install-config
+              optional: true
+        - name: DEFAULT_SECURITY_CONTEXT_HOST_USERS
+          valueFrom:
+            configMapKeyRef:
+              key: defaultSecurityContextHostUsers
+              name: pipeline-install-config
+              optional: true
+        - name: DEFAULT_PVC_STORAGE_CLASS
+          valueFrom:
+            configMapKeyRef:
+              key: defaultPVCStorageClass
+              name: pipeline-install-config
+              optional: true
+        - name: DRIVER_POD_LABELS
+          valueFrom:
+            configMapKeyRef:
+              key: DRIVER_POD_LABELS
+              name: pipeline-install-config
+              optional: true
+        - name: DRIVER_POD_ANNOTATIONS
+          valueFrom:
+            configMapKeyRef:
+              key: DRIVER_POD_ANNOTATIONS
+              name: pipeline-install-config
+              optional: true
+        - name: RUNS_RETENTION_TIME
+          valueFrom:
+            configMapKeyRef:
+              key: RUNS_RETENTION_TIME
+              name: pipeline-install-config
+              optional: true
+        - name: ARCHIVED_RUNS_RETENTION_TIME
+          valueFrom:
+            configMapKeyRef:
+              key: ARCHIVED_RUNS_RETENTION_TIME
+              name: pipeline-install-config
+              optional: true
+        - name: RUNS_GC_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              key: RUNS_GC_INTERVAL
+              name: pipeline-install-config
+              optional: true
+        - name: RUNS_GC_BATCH_SIZE
+          valueFrom:
+            configMapKeyRef:
+              key: RUNS_GC_BATCH_SIZE
+              name: pipeline-install-config
+              optional: true
+        image: ghcr.io/kubeflow/kfp-api-server:2.17.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /apis/v2/healthz
+            port: 8888
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-api-server
+        ports:
+        - containerPort: 8888
+          name: http
+        - containerPort: 8887
+          name: grpc
+        readinessProbe:
+          httpGet:
+            path: /apis/v2/healthz
+            port: 8888
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 250m
+            memory: 500Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        startupProbe:
+          failureThreshold: 12
+          httpGet:
+            path: /apis/v2/healthz
+            port: 8888
+          periodSeconds: 5
+          timeoutSeconds: 2
+        volumeMounts:
+        - mountPath: /etc/mlflow-tracking-ca
+          name: mlflow-tracking-ca
+          readOnly: true
+      initContainers:
+      - args:
+        - |
+          if [ -z "${WAIT_HOST}" ] || [ -z "${WAIT_PORT}" ]; then
+            echo "ERROR: WAIT_HOST or WAIT_PORT is not set."
+            exit 1
+          fi
+          MAX_RETRIES=60; i=0
+          while ! nc -z -w 2 "${WAIT_HOST}" "${WAIT_PORT}"; do
+            i=$((i+1))
+            if [ "$i" -ge "$MAX_RETRIES" ]; then
+              echo "ERROR: Timed out waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts."
+              exit 1
+            fi
+            echo "Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt ${i}/${MAX_RETRIES})..."
+            sleep 5
+          done
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: mysqlHost
+              name: pipeline-install-config
+        - name: WAIT_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: mysqlPort
+              name: pipeline-install-config
+        image: docker.io/alpine:3.23
+        name: wait-for-database
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline
+      volumes:
+      - configMap:
+          name: mlflow-tracking-ca
+          optional: true
+        name: mlflow-tracking-ca
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-persistenceagent
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-persistenceagent
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-persistenceagent
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-persistenceagent
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: TTL_SECONDS_AFTER_WORKFLOW_FINISH
+          value: "86400"
+        - name: NUM_WORKERS
+          value: "2"
+        - name: LOG_LEVEL
+          value: info
+        - name: IMAGE_PULL_FAILURE_HANDLING_ENABLED
+          value: "false"
+        - name: IMAGE_PULL_FAILURE_GRACE_PERIOD_SEC
+          value: "300"
+        image: ghcr.io/kubeflow/kfp-persistence-agent:2.17.1
+        imagePullPolicy: IfNotPresent
+        name: ml-pipeline-persistenceagent
+        resources:
+          requests:
+            cpu: 120m
+            memory: 500Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /var/run/secrets/kubeflow/tokens
+          name: persistenceagent-sa-token
+      initContainers:
+      - args:
+        - |
+          if [ -z "${WAIT_HOST}" ] || [ -z "${WAIT_PORT}" ]; then
+            echo "ERROR: WAIT_HOST or WAIT_PORT is not set."
+            exit 1
+          fi
+          MAX_RETRIES=60; i=0
+          while ! nc -z -w 2 "${WAIT_HOST}" "${WAIT_PORT}"; do
+            i=$((i+1))
+            if [ "$i" -ge "$MAX_RETRIES" ]; then
+              echo "ERROR: Timed out waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts."
+              exit 1
+            fi
+            echo "Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt ${i}/${MAX_RETRIES})..."
+            sleep 5
+          done
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          value: ml-pipeline
+        - name: WAIT_PORT
+          value: "8888"
+        image: docker.io/alpine:3.23
+        name: wait-for-ml-pipeline
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-persistenceagent
+      volumes:
+      - name: persistenceagent-sa-token
+        projected:
+          sources:
+          - serviceAccountToken:
+              audience: pipelines.kubeflow.org
+              expirationSeconds: 3600
+              path: persistenceagent-sa-token
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-scheduledworkflow
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-scheduledworkflow
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-scheduledworkflow
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-scheduledworkflow
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: METRICS_PORT
+          value: "9090"
+        - name: CLIENT_QPS
+          value: "10"
+        - name: RESYNC_INTERVAL_SECONDS
+          value: "30"
+        - name: CLIENT_BURST
+          value: "20"
+        - name: LOG_LEVEL
+          value: info
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: LEADER_ELECT
+          value: "true"
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CRON_SCHEDULE_TIMEZONE
+          valueFrom:
+            configMapKeyRef:
+              key: cronScheduleTimezone
+              name: pipeline-install-config
+        image: ghcr.io/kubeflow/kfp-scheduled-workflow-controller:2.17.1
+        imagePullPolicy: IfNotPresent
+        name: ml-pipeline-scheduledworkflow
+        ports:
+        - containerPort: 9090
+          name: http
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /var/run/secrets/kubeflow/tokens
+          name: scheduledworkflow-sa-token
+      initContainers:
+      - args:
+        - |
+          if [ -z "${WAIT_HOST}" ] || [ -z "${WAIT_PORT}" ]; then
+            echo "ERROR: WAIT_HOST or WAIT_PORT is not set."
+            exit 1
+          fi
+          MAX_RETRIES=60; i=0
+          while ! nc -z -w 2 "${WAIT_HOST}" "${WAIT_PORT}"; do
+            i=$((i+1))
+            if [ "$i" -ge "$MAX_RETRIES" ]; then
+              echo "ERROR: Timed out waiting for ${WAIT_HOST}:${WAIT_PORT} after ${MAX_RETRIES} attempts."
+              exit 1
+            fi
+            echo "Waiting for ${WAIT_HOST}:${WAIT_PORT} (attempt ${i}/${MAX_RETRIES})..."
+            sleep 5
+          done
+        command:
+        - /bin/sh
+        - -ec
+        env:
+        - name: WAIT_HOST
+          value: ml-pipeline
+        - name: WAIT_PORT
+          value: "8888"
+        image: docker.io/alpine:3.23
+        name: wait-for-ml-pipeline
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-scheduledworkflow
+      volumes:
+      - name: scheduledworkflow-sa-token
+        projected:
+          sources:
+          - serviceAccountToken:
+              audience: pipelines.kubeflow.org
+              expirationSeconds: 3600
+              path: scheduledworkflow-sa-token
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-ui
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-ui
+      application-crd-id: kubeflow-pipelines
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-ui
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: TENSORBOARD_PROXY_SIGNING_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: signing-secret
+              name: ml-pipeline-ui-tensorboard-proxy
+        - name: VIEWER_TENSORBOARD_POD_TEMPLATE_SPEC_PATH
+          value: /etc/config/viewer-pod-template.json
+        - name: MINIO_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: accesskey
+              name: mlpipeline-minio-artifact
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secretkey
+              name: mlpipeline-minio-artifact
+        - name: FRONTEND_SERVER_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: ARGO_ARCHIVE_LOGS
+          value: "true"
+        - name: DISABLE_GKE_METADATA
+          value: "true"
+        - name: ARTIFACT_NAMESPACE_OWNERSHIP_MODE
+          valueFrom:
+            configMapKeyRef:
+              key: ARTIFACT_NAMESPACE_OWNERSHIP_MODE
+              name: pipeline-install-config
+              optional: true
+        - name: ARTIFACT_VALIDATION_TIMEOUT_MS
+          valueFrom:
+            configMapKeyRef:
+              key: ARTIFACT_VALIDATION_TIMEOUT_MS
+              name: pipeline-install-config
+              optional: true
+        - name: MLMD_VALIDATION_TIMEOUT_MS
+          valueFrom:
+            configMapKeyRef:
+              key: MLMD_VALIDATION_TIMEOUT_MS
+              name: pipeline-install-config
+              optional: true
+        - name: ARTIFACT_NAMESPACE_KEY_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              key: ARTIFACT_NAMESPACE_KEY_PREFIX
+              name: pipeline-install-config
+              optional: true
+        - name: CLUSTER_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              key: CLUSTER_DOMAIN
+              name: pipeline-install-config
+              optional: true
+        - name: ARTIFACTS_SERVICE_PROXY_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: ARTIFACTS_PROXY_ENABLED
+              name: pipeline-install-config
+              optional: true
+        - name: HTTP_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: HTTP_BASE_URL
+              name: pipeline-install-config
+              optional: true
+        - name: ALLOWED_ARTIFACT_ENDPOINTS
+          valueFrom:
+            configMapKeyRef:
+              key: ALLOWED_ARTIFACT_ENDPOINTS
+              name: pipeline-install-config
+              optional: true
+        - name: ALLOWED_GCS_UNIVERSE_DOMAINS
+          valueFrom:
+            configMapKeyRef:
+              key: ALLOWED_GCS_UNIVERSE_DOMAINS
+              name: pipeline-install-config
+              optional: true
+        image: ghcr.io/kubeflow/kfp-frontend:2.17.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /apis/v2/healthz
+            port: 3000
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        name: ml-pipeline-ui
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /apis/v2/healthz
+            port: 3000
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 70Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+          readOnly: true
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-ui
+      volumes:
+      - configMap:
+          name: ml-pipeline-ui-configmap
+        name: config-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ml-pipeline-viewer-crd
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-viewer-crd
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: ml-pipeline-viewer-crd
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      labels:
+        app: ml-pipeline-viewer-crd
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - env:
+        - name: MAX_NUM_VIEWERS
+          value: "50"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: ghcr.io/kubeflow/kfp-viewer-crd-controller:2.17.1
+        imagePullPolicy: Always
+        name: ml-pipeline-viewer-crd
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 0
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-viewer-crd-service-account
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mysql
+    application-crd-id: kubeflow-pipelines
+  name: mysql
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+      application-crd-id: kubeflow-pipelines
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - args:
+        - --datadir
+        - /var/lib/mysql
+        - --authentication-policy=mysql_native_password
+        - --mysql-native-password=ON
+        - --disable-log-bin
+        env:
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD
+          value: "true"
+        image: mysql:8.4.11@sha256:24989179f58856db763f418010c1169fecc944e3ec1ea7e921572d83eb070f70
+        name: mysql
+        ports:
+        - containerPort: 3306
+          name: mysql
+        resources:
+          requests:
+            cpu: 100m
+            memory: 800Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 999
+          runAsNonRoot: true
+          runAsUser: 999
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysql-persistent-storage
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: seaweedfs
+    application-crd-id: kubeflow-pipelines
+  name: seaweedfs
+  namespace: kubeflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seaweedfs
+      application-crd-id: kubeflow-pipelines
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: seaweedfs
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - args:
+        - server
+        - -dir=/data
+        - -s3
+        - -iam
+        - -filer
+        - -master.volumePreallocate=false
+        envFrom:
+        - secretRef:
+            name: mlpipeline-minio-artifact
+        image: ghcr.io/chrislusf/seaweedfs:4.50
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - |
+                # Wait up to 120 seconds  for SeaweedFS master to be ready
+                for i in $(seq 1 60); do
+                  if wget -q --spider http://127.0.0.1:8333/status; then
+                    break
+                  fi
+                  if [ "$i" -eq 60 ]; then
+                    echo "ERROR: SeaweedFS master did not become ready within 120 seconds"
+                    exit 1
+                  fi
+                  sleep 2
+                done
+
+                # Create bucket with retries (maximum 25 seconds)
+                for attempt in $(seq 1 5); do
+                  if bucket_listing=$(echo "s3.bucket.list" | /usr/bin/weed shell 2>/dev/null); then
+                    if printf '%s\n' "$bucket_listing" | grep -Eq '^[[:space:]]*mlpipeline[[:space:]]'; then
+                      break
+                    fi
+                    if echo "s3.bucket.create --name mlpipeline" | /usr/bin/weed shell >/dev/null 2>&1 &&
+                      bucket_listing=$(echo "s3.bucket.list" | /usr/bin/weed shell 2>/dev/null) &&
+                      printf '%s\n' "$bucket_listing" | grep -Eq '^[[:space:]]*mlpipeline[[:space:]]'; then
+                      break
+                    fi
+                  fi
+                  if [ "$attempt" -eq 5 ]; then
+                    echo "ERROR: Could not verify or create mlpipeline bucket after 5 attempts"
+                    exit 1
+                  fi
+                  sleep 5
+                done
+
+                # Configure admin user with retries (25s max)
+                for i in $(seq 1 5); do
+                  if echo "s3.configure -user kubeflow-admin -access_key $accesskey -secret_key $secretkey -actions Admin -apply" | /usr/bin/weed shell 2>&1; then
+                    break
+                  fi
+                  if [ "$i" -eq 5 ]; then
+                    echo "ERROR: Failed to configure kubeflow-admin after 5 attempts"
+                    exit 1
+                  fi
+                  sleep 5
+                done
+
+                # Verify bucket is accessible
+                if ! echo "s3.bucket.list" | /usr/bin/weed shell | grep -q mlpipeline; then
+                  echo "ERROR: mlpipeline bucket verification failed"
+                  exit 1
+                fi
+
+                # Signal successful initialization for the startup probe
+                touch /tmp/initialization-complete
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 8333
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+        name: seaweedfs
+        ports:
+        - containerPort: 8333
+        - containerPort: 8111
+        - containerPort: 9333
+        - containerPort: 19333
+        - containerPort: 8888
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 8333
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          requests:
+            cpu: 64m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        startupProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - test -f /tmp/initialization-complete && echo "s3.bucket.list" | /usr/bin/weed
+              shell | grep -q mlpipeline
+          failureThreshold: 24
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 10
+        volumeMounts:
+        - mountPath: /data
+          name: data
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: seaweedfs
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: seaweedfs-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: workflow-controller
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: workflow-controller
+      application-crd-id: kubeflow-pipelines
+  template:
+    metadata:
+      labels:
+        app: workflow-controller
+        application-crd-id: kubeflow-pipelines
+    spec:
+      containers:
+      - args:
+        - --configmap
+        - workflow-controller-configmap
+        - --executor-image
+        - quay.io/argoproj/argoexec:v4.1.6
+        - --namespaced
+        command:
+        - workflow-controller
+        env:
+        - name: TRANSIENT_ERROR_PATTERN
+          value: (?i)(imminent node shutdown|node is shutting down|preempt|evict|spot|pod
+            deleted)
+        - name: ARGO_EXECUTOR_PLUGINS
+          value: "true"
+        - name: DEFAULT_REQUEUE_TIME
+          value: 6s
+        - name: LEADER_ELECTION_IDENTITY
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        image: quay.io/argoproj/workflow-controller:v4.1.6
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 6060
+          initialDelaySeconds: 90
+          periodSeconds: 60
+          timeoutSeconds: 30
+        name: workflow-controller
+        ports:
+        - containerPort: 9090
+          name: metrics
+        - containerPort: 6060
+        resources:
+          requests:
+            cpu: 100m
+            memory: 500Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: workflow-controller
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: argo
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: ml-pipeline-ui-signing-key-init-d6km5hkhmm
+  namespace: kubeflow
+spec:
+  activeDeadlineSeconds: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        application-crd-id: kubeflow-pipelines
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - command:
+        - node
+        - dist/initialize-tensorboard-signing-key.js
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: SIGNING_SECRET_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: secretName
+              name: ml-pipeline-ui-signing-key-init-d6km5hkhmm
+        - name: SIGNING_SECRET_KEY
+          valueFrom:
+            configMapKeyRef:
+              key: secretKey
+              name: ml-pipeline-ui-signing-key-init-d6km5hkhmm
+        image: ghcr.io/kubeflow/kfp-frontend:2.17.1
+        imagePullPolicy: IfNotPresent
+        name: initialize
+        resources:
+          limits:
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        workingDir: /server
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: ml-pipeline-ui-signing-key-init
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    application-crd-id: kubeflow-pipelines
+  name: seaweedfs
+  namespace: kubeflow
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/part-of
+          operator: In
+          values:
+          - kubeflow-profile
+    ports:
+    - port: 8333
+  - from:
+    - namespaceSelector:
+        matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+          - istio-system
+  - from:
+    - podSelector: {}
+    ports:
+    - port: 8333
+  - from:
+    - podSelector:
+        matchLabels:
+          app: kubeflow-pipelines-profile-controller
+          application-crd-id: kubeflow-pipelines
+    ports:
+    - port: 8111
+  podSelector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - seaweedfs
+  policyTypes:
+  - Ingress
