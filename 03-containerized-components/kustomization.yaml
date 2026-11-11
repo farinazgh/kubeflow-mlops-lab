@@ -1,0 +1,20 @@
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Official Kubeflow Pipelines standalone installation
+resources:
+  - github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic?ref=2.18.0
+
+# Customize persistent storage for our kubeadm cluster
+patches:
+  - target:
+      version: v1
+      kind: PersistentVolumeClaim
+    patch: |-
+      - op: add
+        path: /spec/storageClassName
+        value: kfp-local
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 5Gi
