@@ -1,0 +1,67 @@
+Pipeline compiled successfully: /home/ubuntu/kubeflow-mlops-lab/02-lightweight-components/pipeline.yaml
+07:09:33.318 - INFO - Running pipeline: 'first-kubeflow-pipeline'
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+07:09:33.339 - INFO - Executing task 'generate-number'
+07:09:33.339 - INFO - Streamed logs:
+
+    Looking in links: /tmp/tmpssb1zo5s
+    Processing /tmp/tmpssb1zo5s/pip-26.2.2-py3-none-any.whl
+    Installing collected packages: pip
+    Successfully installed pip-26.2.2
+    [KFP Executor 2026-11-11 07:09:38,247 INFO]: Looking for component `generate_number` in --component_module_path `/tmp/tmp.mJz5umMfOq/ephemeral_component.py`
+    [KFP Executor 2026-11-11 07:09:38,247 INFO]: Loading KFP component "generate_number" from /tmp/tmp.mJz5umMfOq/ephemeral_component.py (directory "/tmp/tmp.mJz5umMfOq" and module name "ephemeral_component")
+    [KFP Executor 2026-11-11 07:09:38,248 INFO]: Got executor_input:
+    {
+        "inputs": {
+            "parameterValues": {
+                "seed": 3
+            }
+        },
+        "outputs": {
+            "parameters": {
+                "Output": {
+                    "outputFile": "/home/ubuntu/kubeflow-mlops-lab/02-lightweight-components/local_outputs/first-kubeflow-pipeline-2026-11-11-07-09-33-318362/generate-number/Output"
+                }
+            },
+            "outputFile": "/home/ubuntu/kubeflow-mlops-lab/02-lightweight-components/local_outputs/first-kubeflow-pipeline-2026-11-11-07-09-33-318362/generate-number/executor_output.json"
+        }
+    }
+    [KFP Executor 2026-11-11 07:09:38,249 INFO]: Wrote executor output file to /home/ubuntu/kubeflow-mlops-lab/02-lightweight-components/local_outputs/first-kubeflow-pipeline-2026-11-11-07-09-33-318362/generate-number/executor_output.json.
+
+
+07:09:38.274 - INFO - Task 'generate-number' finished with status SUCCESS
+07:09:38.274 - INFO - Task 'generate-number' outputs:
+    Output: 6
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+07:09:38.275 - INFO - Executing task 'square-number'
+07:09:38.276 - INFO - Streamed logs:
+
+    Looking in links: /tmp/tmpj2fxz8h8
+    Requirement already satisfied: pip in /home/ubuntu/kubeflow-mlops-lab/.venv/lib/python3.13/site-packages (26.2.2)
+    [KFP Executor 2026-11-11 07:09:41,616 INFO]: Looking for component `square_number` in --component_module_path `/tmp/tmp.ofdWEB0MDC/ephemeral_component.py`
+    [KFP Executor 2026-11-11 07:09:41,617 INFO]: Loading KFP component "square_number" from /tmp/tmp.ofdWEB0MDC/ephemeral_component.py (directory "/tmp/tmp.ofdWEB0MDC" and module name "ephemeral_component")
+    [KFP Executor 2026-11-11 07:09:41,618 INFO]: Got executor_input:
+    {
+        "inputs": {
+            "parameterValues": {
+                "value": 6
+            }
+        },
+        "outputs": {
+            "parameters": {
+                "Output": {
+                    "outputFile": "/home/ubuntu/kubeflow-mlops-lab/02-lightweight-components/local_outputs/first-kubeflow-pipeline-2026-11-11-07-09-33-318362/square-number/Output"
+                }
+            },
+            "outputFile": "/home/ubuntu/kubeflow-mlops-lab/02-lightweight-components/local_outputs/first-kubeflow-pipeline-2026-11-11-07-09-33-318362/square-number/executor_output.json"
+        }
+    }
+    [KFP Executor 2026-11-11 07:09:41,621 INFO]: Wrote executor output file to /home/ubuntu/kubeflow-mlops-lab/02-lightweight-components/local_outputs/first-kubeflow-pipeline-2026-11-11-07-09-33-318362/square-number/executor_output.json.
+
+
+07:09:41.648 - INFO - Task 'square-number' finished with status SUCCESS
+07:09:41.648 - INFO - Task 'square-number' outputs:
+    Output: 36
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+07:09:41.649 - INFO - Pipeline 'first-kubeflow-pipeline' finished with status SUCCESS
+Local pipeline result: 36
