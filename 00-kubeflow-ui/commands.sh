@@ -24,8 +24,7 @@ kubectl -n headlamp port-forward svc/headlamp 8081:80
 # This is an SSH tunnel through the EC2 instance.
 # We need it when the cluster is running on a remote VM and we want a secure path to the forwarded service.
 # It forwards the local port on your machine through the VM to the cluster-side port.
-ssh -i "PATH_TO_KEY.pem" ` -L 8081:localhost:8081 ` ubuntu@YOUR_EC2_PUBLIC_IP
-
+ssh -i "moomin-mamma.pem" -L 8080:127.0.0.1:8080 ubuntu@ec2-52-214-87-145.eu-west-1.compute.amazonaws.com
 # This is the Kubeflow Pipelines UI.
 # We need it because Kubeflow has its own web interface for running and monitoring ML pipelines.
 # This command exposes the ml-pipeline-ui service locally on port 8080.
