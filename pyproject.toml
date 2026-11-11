@@ -1,0 +1,11 @@
+[project]
+name = "kubeflow-mlops-lab"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "black>=26.10.1",
+    "isort>=9.0.2",
+    "kfp>=2.18.0",
+]
