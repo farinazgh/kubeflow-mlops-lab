@@ -7,5 +7,9 @@ requires-python = ">=3.13"
 dependencies = [
     "black>=26.10.1",
     "isort>=9.0.2",
+    "joblib>=1.6.0",
     "kfp>=2.18.0",
+    "pandas>=3.1.1",
+    "pathlib>=1.0.1",
+    "scikit-learn>=1.9.1",
 ]
