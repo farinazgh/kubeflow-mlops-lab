@@ -1,0 +1,504 @@
+# PIPELINE DEFINITION
+# Name: customer-churn-decision-tree
+# Description: Synthetic customer churn: preparation, training, validation, gate, holdout
+# Inputs:
+#    data_url: str [Default: 'https://sagemaker-example-files-prod-eu-west-1.s3.eu-west-1.amazonaws.com/datasets/tabular/synthetic/churn.txt']
+#    max_depth: int [Default: 5.0]
+#    min_accuracy: float [Default: 0.85]
+#    min_samples_split: int [Default: 2.0]
+#    random_state: int [Default: 42.0]
+# Outputs:
+#    Output: float
+components:
+  comp-evaluate-churn-model:
+    executorLabel: exec-evaluate-churn-model
+    inputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        trained_model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        split_name:
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        metrics:
+          artifactType:
+            schemaTitle: system.Metrics
+            schemaVersion: 0.0.1
+      parameters:
+        Output:
+          parameterType: NUMBER_DOUBLE
+  comp-evaluate-churn-model-2:
+    executorLabel: exec-evaluate-churn-model-2
+    inputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        trained_model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        split_name:
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        metrics:
+          artifactType:
+            schemaTitle: system.Metrics
+            schemaVersion: 0.0.1
+      parameters:
+        Output:
+          parameterType: NUMBER_DOUBLE
+  comp-prepare-churn-data:
+    executorLabel: exec-prepare-churn-data
+    inputDefinitions:
+      parameters:
+        data_url:
+          parameterType: STRING
+        random_state:
+          defaultValue: 42.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+    outputDefinitions:
+      artifacts:
+        test_dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        train_dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        validation_dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-train-churn-model:
+    executorLabel: exec-train-churn-model
+    inputDefinitions:
+      artifacts:
+        train_dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+      parameters:
+        max_depth:
+          defaultValue: 5.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        min_samples_split:
+          defaultValue: 2.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+        random_state:
+          defaultValue: 42.0
+          isOptional: true
+          parameterType: NUMBER_INTEGER
+    outputDefinitions:
+      artifacts:
+        trained_model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+  comp-validate-model:
+    executorLabel: exec-validate-model
+    inputDefinitions:
+      parameters:
+        accuracy:
+          parameterType: NUMBER_DOUBLE
+        min_accuracy:
+          defaultValue: 0.85
+          isOptional: true
+          parameterType: NUMBER_DOUBLE
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: STRING
+defaultPipelineRoot: minio://mlpipeline/v2/artifacts
+deploymentSpec:
+  executors:
+    exec-evaluate-churn-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - evaluate_churn_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'pandas==2.2.3'\
+          \ 'scikit-learn==1.6.1' 'joblib==1.4.2'  &&  python3 -m pip install --quiet\
+          \ --no-warn-script-location 'kfp==2.18.0' '--no-deps' 'typing-extensions>=3.7.4,<5;\
+          \ python_version<\"3.9\"' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef evaluate_churn_model(\n    dataset: Input[Dataset],\n    trained_model:\
+          \ Input[Model],\n    metrics: Output[Metrics],\n    split_name: str,\n)\
+          \ -> float:\n    import joblib\n    import pandas as pd\n    from sklearn.metrics\
+          \ import (\n        accuracy_score,\n        confusion_matrix,\n       \
+          \ f1_score,\n        precision_score,\n        recall_score,\n    )\n\n\
+          \    frame = pd.read_csv(dataset.path)\n    X = frame.drop(columns=[\"churn\"\
+          ])\n    y = frame[\"churn\"].astype(int)\n    if \"Area Code\" in X:\n \
+          \       X[\"Area Code\"] = X[\"Area Code\"].astype(str)\n\n    model = joblib.load(trained_model.path)\
+          \  # Only load trusted model artifacts.\n    predictions = model.predict(X)\n\
+          \n    scores = {\n        \"accuracy\": float(accuracy_score(y, predictions)),\n\
+          \        \"precision\": float(precision_score(y, predictions, zero_division=0)),\n\
+          \        \"recall\": float(recall_score(y, predictions, zero_division=0)),\n\
+          \        \"f1\": float(f1_score(y, predictions, zero_division=0)),\n   \
+          \     \"majority_baseline_accuracy\": float(max(y.mean(), 1 - y.mean())),\n\
+          \    }\n    tn, fp, fn, tp = confusion_matrix(y, predictions, labels=[0,\
+          \ 1]).ravel()\n    scores.update({\"tn\": float(tn), \"fp\": float(fp),\
+          \ \"fn\": float(fn), \"tp\": float(tp)})\n    for name, value in scores.items():\n\
+          \        metrics.log_metric(name, value)\n    metrics.metadata[\"split\"\
+          ] = split_name\n    print(f\"{split_name} evaluation: {scores}\")\n    return\
+          \ scores[\"accuracy\"]\n\n"
+        image: python:3.12-slim
+    exec-evaluate-churn-model-2:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - evaluate_churn_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'pandas==2.2.3'\
+          \ 'scikit-learn==1.6.1' 'joblib==1.4.2'  &&  python3 -m pip install --quiet\
+          \ --no-warn-script-location 'kfp==2.18.0' '--no-deps' 'typing-extensions>=3.7.4,<5;\
+          \ python_version<\"3.9\"' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef evaluate_churn_model(\n    dataset: Input[Dataset],\n    trained_model:\
+          \ Input[Model],\n    metrics: Output[Metrics],\n    split_name: str,\n)\
+          \ -> float:\n    import joblib\n    import pandas as pd\n    from sklearn.metrics\
+          \ import (\n        accuracy_score,\n        confusion_matrix,\n       \
+          \ f1_score,\n        precision_score,\n        recall_score,\n    )\n\n\
+          \    frame = pd.read_csv(dataset.path)\n    X = frame.drop(columns=[\"churn\"\
+          ])\n    y = frame[\"churn\"].astype(int)\n    if \"Area Code\" in X:\n \
+          \       X[\"Area Code\"] = X[\"Area Code\"].astype(str)\n\n    model = joblib.load(trained_model.path)\
+          \  # Only load trusted model artifacts.\n    predictions = model.predict(X)\n\
+          \n    scores = {\n        \"accuracy\": float(accuracy_score(y, predictions)),\n\
+          \        \"precision\": float(precision_score(y, predictions, zero_division=0)),\n\
+          \        \"recall\": float(recall_score(y, predictions, zero_division=0)),\n\
+          \        \"f1\": float(f1_score(y, predictions, zero_division=0)),\n   \
+          \     \"majority_baseline_accuracy\": float(max(y.mean(), 1 - y.mean())),\n\
+          \    }\n    tn, fp, fn, tp = confusion_matrix(y, predictions, labels=[0,\
+          \ 1]).ravel()\n    scores.update({\"tn\": float(tn), \"fp\": float(fp),\
+          \ \"fn\": float(fn), \"tp\": float(tp)})\n    for name, value in scores.items():\n\
+          \        metrics.log_metric(name, value)\n    metrics.metadata[\"split\"\
+          ] = split_name\n    print(f\"{split_name} evaluation: {scores}\")\n    return\
+          \ scores[\"accuracy\"]\n\n"
+        image: python:3.12-slim
+    exec-prepare-churn-data:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - prepare_churn_data
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'pandas==2.2.3'\
+          \ 'scikit-learn==1.6.1'  &&  python3 -m pip install --quiet --no-warn-script-location\
+          \ 'kfp==2.18.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"\
+          3.9\"' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef prepare_churn_data(\n    train_dataset: Output[Dataset],\n  \
+          \  validation_dataset: Output[Dataset],\n    test_dataset: Output[Dataset],\n\
+          \    data_url: str,\n    random_state: int = 42,\n):\n    from io import\
+          \ BytesIO\n    from urllib.request import urlopen\n\n    import pandas as\
+          \ pd\n    from sklearn.model_selection import train_test_split\n\n    #\
+          \ The original SageMaker course downloads the same AWS synthetic churn data.\n\
+          \    with urlopen(data_url, timeout=90) as response:\n        raw = response.read()\n\
+          \    df = pd.read_csv(BytesIO(raw))\n\n    if \"Churn?\" not in df.columns:\n\
+          \        raise ValueError(f\"Expected 'Churn?' column; got {list(df.columns)}\"\
+          )\n\n    # Avoid memorizing a customer identifier, and normalize target\
+          \ labels.\n    df = df.drop(columns=[\"Phone\"], errors=\"ignore\")\n  \
+          \  labels = {\n        \"false.\": 0,\n        \"true.\": 1,\n        \"\
+          false\": 0,\n        \"true\": 1,\n        \"0\": 0,\n        \"1\": 1,\n\
+          \    }\n    df[\"churn\"] = df.pop(\"Churn?\").astype(str).str.strip().str.lower().map(labels)\n\
+          \    if df[\"churn\"].isna().any():\n        raise ValueError(\"Churn target\
+          \ contains unexpected labels\")\n    df[\"churn\"] = df[\"churn\"].astype(int)\n\
+          \n    # Area Code is categorical even though it is numerically encoded.\n\
+          \    if \"Area Code\" in df:\n        df[\"Area Code\"] = df[\"Area Code\"\
+          ].astype(str)\n\n    # Independent, stratified 60/20/20 splits. Keep test\
+          \ untouched until approval.\n    train, remainder = train_test_split(\n\
+          \        df, test_size=0.4, random_state=random_state, stratify=df[\"churn\"\
+          ]\n    )\n    validation, test = train_test_split(\n        remainder,\n\
+          \        test_size=0.5,\n        random_state=random_state,\n        stratify=remainder[\"\
+          churn\"],\n    )\n\n    for frame, artifact, split in [\n        (train,\
+          \ train_dataset, \"train\"),\n        (validation, validation_dataset, \"\
+          validation\"),\n        (test, test_dataset, \"test\"),\n    ]:\n      \
+          \  frame.to_csv(artifact.path, index=False)\n        artifact.metadata[\"\
+          split\"] = split\n        artifact.metadata[\"rows\"] = len(frame)\n   \
+          \     artifact.metadata[\"churn_rate\"] = float(frame[\"churn\"].mean())\n\
+          \        artifact.metadata[\"source\"] = data_url\n        print(f\"{split}:\
+          \ {len(frame)} rows, churn={frame['churn'].mean():.3f}\")\n\n"
+        image: python:3.12-slim
+    exec-train-churn-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - train_churn_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'pandas==2.2.3'\
+          \ 'scikit-learn==1.6.1' 'joblib==1.4.2'  &&  python3 -m pip install --quiet\
+          \ --no-warn-script-location 'kfp==2.18.0' '--no-deps' 'typing-extensions>=3.7.4,<5;\
+          \ python_version<\"3.9\"' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef train_churn_model(\n    train_dataset: Input[Dataset],\n    trained_model:\
+          \ Output[Model],\n    max_depth: int = 5,\n    min_samples_split: int =\
+          \ 2,\n    random_state: int = 42,\n):\n    import joblib\n    import pandas\
+          \ as pd\n    from sklearn.compose import ColumnTransformer\n    from sklearn.pipeline\
+          \ import Pipeline\n    from sklearn.preprocessing import OneHotEncoder\n\
+          \    from sklearn.tree import DecisionTreeClassifier\n\n    frame = pd.read_csv(train_dataset.path)\n\
+          \    X = frame.drop(columns=[\"churn\"])\n    y = frame[\"churn\"].astype(int)\n\
+          \    if \"Area Code\" in X:\n        X[\"Area Code\"] = X[\"Area Code\"\
+          ].astype(str)\n\n    categoricals = X.select_dtypes(include=[\"object\"\
+          , \"string\"]).columns.tolist()\n    numerics = [column for column in X.columns\
+          \ if column not in categoricals]\n\n    preprocessor = ColumnTransformer(\n\
+          \        transformers=[\n            (\"categorical\", OneHotEncoder(handle_unknown=\"\
+          ignore\"), categoricals),\n            (\"numeric\", \"passthrough\", numerics),\n\
+          \        ]\n    )\n    model = Pipeline(\n        [\n            (\"preprocessing\"\
+          , preprocessor),\n            (\n                \"classifier\",\n     \
+          \           DecisionTreeClassifier(\n                    max_depth=max_depth,\n\
+          \                    min_samples_split=min_samples_split,\n            \
+          \        random_state=random_state,\n                ),\n            ),\n\
+          \        ]\n    )\n    model.fit(X, y)\n    joblib.dump(model, trained_model.path)\n\
+          \n    trained_model.metadata[\"framework\"] = \"scikit-learn\"\n    trained_model.metadata[\"\
+          algorithm\"] = \"DecisionTreeClassifier\"\n    trained_model.metadata[\"\
+          max_depth\"] = max_depth\n    trained_model.metadata[\"min_samples_split\"\
+          ] = min_samples_split\n    print(f\"Saved model from {len(frame)} training\
+          \ samples\")\n\n"
+        image: python:3.12-slim
+    exec-validate-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - validate_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.18.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef validate_model(accuracy: float, min_accuracy: float = 0.85) ->\
+          \ str:\n    if accuracy < min_accuracy:\n        raise ValueError(\n   \
+          \         f\"REJECTED: validation accuracy {accuracy:.3f} < {min_accuracy:.3f}\"\
+          \n        )\n    decision = f\"APPROVED: validation accuracy {accuracy:.3f}\
+          \ >= {min_accuracy:.3f}\"\n    print(decision)\n    return decision\n\n"
+        image: python:3.12-slim
+pipelineInfo:
+  description: 'Synthetic customer churn: preparation, training, validation, gate,
+    holdout'
+  name: customer-churn-decision-tree
+root:
+  dag:
+    outputs:
+      parameters:
+        Output:
+          valueFromParameter:
+            outputParameterKey: Output
+            producerSubtask: evaluate-churn-model-2
+    tasks:
+      evaluate-churn-model:
+        cachingOptions: {}
+        componentRef:
+          name: comp-evaluate-churn-model
+        dependentTasks:
+        - prepare-churn-data
+        - train-churn-model
+        inputs:
+          artifacts:
+            dataset:
+              taskOutputArtifact:
+                outputArtifactKey: validation_dataset
+                producerTask: prepare-churn-data
+            trained_model:
+              taskOutputArtifact:
+                outputArtifactKey: trained_model
+                producerTask: train-churn-model
+          parameters:
+            split_name:
+              runtimeValue:
+                constant: validation
+        taskInfo:
+          name: evaluate-churn-model
+      evaluate-churn-model-2:
+        cachingOptions: {}
+        componentRef:
+          name: comp-evaluate-churn-model-2
+        dependentTasks:
+        - prepare-churn-data
+        - train-churn-model
+        - validate-model
+        inputs:
+          artifacts:
+            dataset:
+              taskOutputArtifact:
+                outputArtifactKey: test_dataset
+                producerTask: prepare-churn-data
+            trained_model:
+              taskOutputArtifact:
+                outputArtifactKey: trained_model
+                producerTask: train-churn-model
+          parameters:
+            split_name:
+              runtimeValue:
+                constant: test
+        taskInfo:
+          name: evaluate-churn-model-2
+      prepare-churn-data:
+        cachingOptions: {}
+        componentRef:
+          name: comp-prepare-churn-data
+        inputs:
+          parameters:
+            data_url:
+              componentInputParameter: data_url
+            random_state:
+              componentInputParameter: random_state
+        taskInfo:
+          name: prepare-churn-data
+      train-churn-model:
+        cachingOptions: {}
+        componentRef:
+          name: comp-train-churn-model
+        dependentTasks:
+        - prepare-churn-data
+        inputs:
+          artifacts:
+            train_dataset:
+              taskOutputArtifact:
+                outputArtifactKey: train_dataset
+                producerTask: prepare-churn-data
+          parameters:
+            max_depth:
+              componentInputParameter: max_depth
+            min_samples_split:
+              componentInputParameter: min_samples_split
+            random_state:
+              componentInputParameter: random_state
+        taskInfo:
+          name: train-churn-model
+      validate-model:
+        cachingOptions: {}
+        componentRef:
+          name: comp-validate-model
+        dependentTasks:
+        - evaluate-churn-model
+        inputs:
+          parameters:
+            accuracy:
+              taskOutputParameter:
+                outputParameterKey: Output
+                producerTask: evaluate-churn-model
+            min_accuracy:
+              componentInputParameter: min_accuracy
+        taskInfo:
+          name: validate-model
+  inputDefinitions:
+    parameters:
+      data_url:
+        defaultValue: https://sagemaker-example-files-prod-eu-west-1.s3.eu-west-1.amazonaws.com/datasets/tabular/synthetic/churn.txt
+        isOptional: true
+        parameterType: STRING
+      max_depth:
+        defaultValue: 5.0
+        isOptional: true
+        parameterType: NUMBER_INTEGER
+      min_accuracy:
+        defaultValue: 0.85
+        isOptional: true
+        parameterType: NUMBER_DOUBLE
+      min_samples_split:
+        defaultValue: 2.0
+        isOptional: true
+        parameterType: NUMBER_INTEGER
+      random_state:
+        defaultValue: 42.0
+        isOptional: true
+        parameterType: NUMBER_INTEGER
+  outputDefinitions:
+    parameters:
+      Output:
+        parameterType: NUMBER_DOUBLE
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.18.0

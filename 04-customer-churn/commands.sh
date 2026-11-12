@@ -1,0 +1,1 @@
+grep -nE 'prepare-churn-data:|train-churn-model:|evaluate-churn-model:|validate-model:' 04-customer-churn/pipeline.yaml
